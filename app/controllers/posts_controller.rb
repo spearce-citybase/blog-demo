@@ -2,7 +2,7 @@ class PostsController < ApplicationController
   def index
     limit = params[:limit] || 10
     offset = params[:offset] || 0
-    posts = Post.limit(limit).offset(offset).includes(:profile)
+    posts = Post.limit(limit).offset(offset)
     serialized = ActiveModel::Serializer::CollectionSerializer.new(posts, serializer: PostSerializer)
     render json: { posts: serialized }
   end
