@@ -1,38 +1,63 @@
+# Setup
+
+```
+asdf install
+bundle
+rails db:migrate
+rails server
+```
+
 # ActiveRecord Performance Optimization
 
 ## create vs insert_all
 
-Fast:
+`insert_all` will perform a single `INSERT`, whereas `create` will perform multiple `INSERT`s.
 
 ```
 Post.insert_all(posts_attributes)
+
+INSERT INTO "posts" ("profile_id","title","body","created_at","updated_at") VALUES ....
 ```
 
-Slow:
+Note: `insert_all` does not run ActiveRecord callbacks.
+
 
 ```
-posts_attributes do |post_attributes|
-  Post.create(post_attributes)
-end
-```
+Post.create(posts_attributes)
 
-Caveat: `insert_all` does not run ActiveRecord callbacks.
+Profile Load (0.0ms)  SELECT "profiles".* FROM "profiles" WHERE "profiles"."id" = ? LIMIT ?  [["id", 252135], ["LIMIT", 1]]
+Post Create (0.2ms)  INSERT INTO "posts" ("title", "body", "profile_id", "created_at", "updated_at") VALUES ...
+  (0.3ms)  commit transaction
+  (0.2ms)  begin transaction
+Profile Load (0.0ms)  SELECT "profiles".* FROM "profiles" WHERE "profiles"."id" = ? LIMIT ?  [["id", 259212], ["LIMIT", 1]]
+Post Create (0.1ms)  INSERT INTO "posts" ("title", "body", "profile_id", "created_at", "updated_at") VALUES ...
+  (0.2ms)  commit transaction
+  (0.0ms)  begin transaction
+Profile Load (0.0ms)  SELECT "profiles".* FROM "profiles" WHERE "profiles"."id" = ? LIMIT ?  [["id", 251127], ["LIMIT", 1]]
+Post Create (0.1ms)  INSERT INTO "posts" ("title", "body", "profile_id", "created_at", "updated_at") VALUES ...
+   (0.2ms)  commit transaction
+...
+```
 
 ## each vs find_each
 
-Low memory usage retained:
+`find_each` will load `batch_size` records into memory, yield the block, and then garbage collect.
+
 ```
-Post.find_each { |post| do_something_with_post }
+Post.find_each(batch_size: 1000) { |post| do_something_with_post }
 ```
 
-High memory usage retained:
+Note: `find_each` cannot be ordered.
+
+`each`, however, will load all records into memory, leaving a large amount of memory retained.
+
 ```
 Post.all.each { |post| do_something_with_post }
 ```
 
-Caveat: `find_each` cannot be ordered.
-
 ## Preloading
+
+Preload an association with `includes` to avoid n+1 queries.
 
 ```
 Post.limit(10).includes(:comments).map { |post| { title: post.title, comments: post.comments } }
@@ -90,5 +115,19 @@ If you don't know whether a relation is preloaded and need to filter it, you can
 post.comments.loaded? ? post.comments.select(&:flag?) : post.comments.where(flag: true)
 ```
 
+# select vs pluck
 
+`select` initializes ActiveRecord objects, leading to a large memory allocation. `pluck` just returns an array of values.
+
+```
+Post.all.select(:title)
+
+#<ActiveRecord::Relation [#<Post id: nil, title: "Qui autem nulla itaque libero earum.">, #<Post id: nil, title: "Odio enim doloribus qui magni.">,...
+```
+
+```
+Post.all.pluck(:title)
+
+["Qui autem nulla itaque libero earum.", "Odio enim doloribus qui magni.", ....
+```
 
