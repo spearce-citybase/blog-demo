@@ -42,3 +42,5 @@ gem "bullet", "~> 7.1"
 gem "ffaker", "~> 2.21"
 
 gem "active_model_serializers", "~> 0.10.14"
+
+gem "benchmark-memory", "~> 0.2.0"
