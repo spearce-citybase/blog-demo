@@ -2,9 +2,18 @@ class PostsController < ApplicationController
   def index
     limit = params[:limit] || 10
     offset = params[:offset] || 0
-    posts = Post.limit(limit).offset(offset)
+    posts = Post.limit(limit).offset(offset).preload(:comments)
     serialized = ActiveModel::Serializer::CollectionSerializer.new(posts, serializer: PostSerializer)
     render json: { posts: serialized }
+  end
+
+  def titles
+    limit = params[:limit] || 10
+    offset = params[:offset] || 0
+    posts = Post.limit(limit).offset(offset)
+    titles = posts.select(:title).map { |post| post.title }
+    # titles = posts.pluck(:title)
+    render json: { titles: titles }
   end
 
   def create

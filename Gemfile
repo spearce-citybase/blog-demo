@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby '2.7.4'
+ruby '3.3.0'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
-gem 'rails', '~> 6.0.6', '>= 6.0.6.1'
+gem 'rails', '~> 7.1.2'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3', '~> 1.4'
 # Use Puma as the app server
@@ -44,3 +44,7 @@ gem "ffaker", "~> 2.21"
 gem "active_model_serializers", "~> 0.10.14"
 
 gem "benchmark-memory", "~> 0.2.0"
+
+gem "memory_profiler", "~> 1.0"
+
+gem "get_process_mem", "~> 0.2.7"

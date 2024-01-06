@@ -1,6 +1,6 @@
 class SeedService
-  NUM_PROFILES = 10_000
-  NUM_POSTS = 10_000
+  NUM_PROFILES = 1_000
+  NUM_POSTS = 100_000
 
   class << self
     def seed_all
@@ -12,27 +12,21 @@ class SeedService
 
     def seed_profiles
       Profile.delete_all
+      Profile.insert_all profiles_attributes
+    end
 
-      attributes = (1..NUM_PROFILES).each_with_object([]) do |_num, array|
+    def seed_profiles_slow
+      Profile.delete_all
+      Profile.create profiles_attributes
+    end
+
+    def profiles_attributes
+      (1..NUM_PROFILES).each_with_object([]) do |_num, array|
         array << {
           name: FFaker::Name.name,
           created_at: now,
           updated_at: now
         }
-      end
-
-      Profile.insert_all attributes
-    end
-
-    def seed_profiles_slow
-      Profile.delete_all
-
-      (1..NUM_PROFILES).each do
-        Profile.create!({
-                          name: FFaker::Name.name,
-                          created_at: now,
-                          updated_at: now
-                        })
       end
     end
 
