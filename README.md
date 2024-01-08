@@ -5,6 +5,10 @@ asdf install
 bundle
 rails db:migrate
 rails server
+
+OR via docker:
+
+docker-compose up
 ```
 
 # ActiveRecord Performance Optimization
@@ -76,6 +80,30 @@ Comment Load (0.0ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post
 ...
 ```
 
+### What preloading method to use?
+
+* `preload` will load the association in a separate query.
+```
+irb(main):012> Post.limit(10).preload(:profile)
+  Post Load (0.1ms)  SELECT "posts".* FROM "posts" /* loading for pp */ LIMIT ?  [["LIMIT", 10]]
+  Profile Load (0.1ms)  SELECT "profiles".* FROM "profiles" WHERE "profiles"."id" IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  [["id", 393511], ["id", 393174], ["id", 393515], ["id", 393248], ["id", 393988], ["id", 393164], ["id", 393688], ["id", 393695], ["id", 393910], ["id", 393239]]
+```
+* `eager_load` will load the association in the same query.
+```
+irb(main):011> Post.limit(10).eager_load(:profile)
+  SQL (0.1ms)  SELECT "posts"."id" AS t0_r0, "posts"."title" AS t0_r1, "posts"."body" AS t0_r2, "posts"."profile_id" AS t0_r3, "posts"."created_at" AS t0_r4, "posts"."updated_at" AS t0_r5, "profiles"."id" AS t1_r0, "profiles"."name" AS t1_r1, "profiles"."created_at" AS t1_r2, "profiles"."updated_at" AS t1_r3, "profiles"."admin" AS t1_r4 FROM "posts" LEFT OUTER JOIN "profiles" ON "profiles"."id" = "posts"."profile_id" /* loading for pp */ LIMIT ?  [["LIMIT", 10]]
+```
+* `includes` will smartly decide on which of the above two approaches to use, based on the nature of the query.
+```
+irb(main):022> Post.limit(10).includes(:profile)
+  Post Load (0.1ms)  SELECT "posts".* FROM "posts" /* loading for pp */ LIMIT ?  [["LIMIT", 10]]
+  Profile Load (0.1ms)  SELECT "profiles".* FROM "profiles" WHERE "profiles"."id" IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  [["id", 393511], ["id", 393174], ["id", 393515], ["id", 393248], ["id", 393988], ["id", 393164], ["id", 393688], ["id", 393695], ["id", 393910], ["id", 393239]]
+```
+```
+irb(main):021> Post.limit(10).includes(:profile).where(profiles: { name: "Steve Pearce" })
+  SQL (0.2ms)  SELECT "posts"."id" AS t0_r0, "posts"."title" AS t0_r1, "posts"."body" AS t0_r2, "posts"."profile_id" AS t0_r3, "posts"."created_at" AS t0_r4, "posts"."updated_at" AS t0_r5, "profiles"."id" AS t1_r0, "profiles"."name" AS t1_r1, "profiles"."created_at" AS t1_r2, "profiles"."updated_at" AS t1_r3, "profiles"."admin" AS t1_r4 FROM "posts" LEFT OUTER JOIN "profiles" ON "profiles"."id" = "posts"."profile_id" WHERE "profiles"."name" = ? /* loading for pp */ LIMIT ?  [["name", "Steve Pearce"], ["LIMIT", 10]]
+```
+
 ### Filtering preloaded relations
 
 Chaining a scope on the preloaded relation will drop the preloaded data. So its best to do array manipulation.
@@ -115,7 +143,7 @@ If you don't know whether a relation is preloaded and need to filter it, you can
 post.comments.loaded? ? post.comments.select(&:flag?) : post.comments.where(flag: true)
 ```
 
-# select vs pluck
+## select vs pluck
 
 `select` initializes ActiveRecord objects, leading to a large memory allocation. `pluck` just returns an array of values.
 
@@ -125,9 +153,21 @@ Post.all.select(:title)
 #<ActiveRecord::Relation [#<Post id: nil, title: "Qui autem nulla itaque libero earum.">, #<Post id: nil, title: "Odio enim doloribus qui magni.">,...
 ```
 
+The benefit of `select` is that it returns a ActiveRecordRelation, so you can continue chaining scopes.
+
 ```
 Post.all.pluck(:title)
 
 ["Qui autem nulla itaque libero earum.", "Odio enim doloribus qui magni.", ....
 ```
 
+`pluck` returns an Array, not an ActiveRecordRelation.
+
+## count vs size vs length
+
+* `count` will make SQL COUNT query.
+* `length` will convert the ActiveRecordRelation to an Array and call `Array#length`.
+* `size` will check whether the ActiveRecordRelation is loaded. It will do `count` if it isn't, and `length` if it is.
+
+If your ActiveRecordRelation hasn't been loaded, use `count`. If it has (e.g. if its a preloaded association), use `length`.
+If you don't want to worry about this, use `size`, as it will always do the right thing.
