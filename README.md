@@ -19,15 +19,15 @@ docker-compose up
 
 ## List posts
 
-`curl http://localhost:3000/posts`
+`curl "http://localhost:3000/posts"`
 
 ## List posts with preloads
 
-`curl http://localhost:3000/posts?preload=1`
+`curl "http://localhost:3000/posts?preload=1"`
 
 ## List posts with fast serializer
 
-`curl http://localhost:3000/posts?fast_serializer=1`
+`curl "http://localhost:3000/posts?fast_serializer=1"`
 
 # ActiveRecord Performance Optimization
 
