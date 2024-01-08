@@ -17,6 +17,6 @@ class FastPostSerializer
   end
 
   private def profile_serializer
-    @profile_serializer ||= FastProfileSerializer.new(@posts.joins(:profile).distinct, 'posts')
+    @profile_serializer ||= FastProfileSerializer.new(Profile.joins(:posts).where(posts: @posts), 'posts')
   end
 end

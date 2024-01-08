@@ -122,6 +122,8 @@ irb(main):021> Post.limit(10).includes(:profile).where(profiles: { name: "Steve 
   SQL (0.2ms)  SELECT "posts"."id" AS t0_r0, "posts"."title" AS t0_r1, "posts"."body" AS t0_r2, "posts"."profile_id" AS t0_r3, "posts"."created_at" AS t0_r4, "posts"."updated_at" AS t0_r5, "profiles"."id" AS t1_r0, "profiles"."name" AS t1_r1, "profiles"."created_at" AS t1_r2, "profiles"."updated_at" AS t1_r3, "profiles"."admin" AS t1_r4 FROM "posts" LEFT OUTER JOIN "profiles" ON "profiles"."id" = "posts"."profile_id" WHERE "profiles"."name" = ? /* loading for pp */ LIMIT ?  [["name", "Steve Pearce"], ["LIMIT", 10]]
 ```
 
+So: prefer `includes` over `preload` or `eager_load`.
+
 ### Filtering preloaded relations
 
 Chaining a scope on the preloaded relation will drop the preloaded data. So its best to do array manipulation.
