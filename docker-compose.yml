@@ -1,3 +1,21 @@
 services:
   app:
-    image: ruby-2.7.4
+    build: .
+    platform: linux/amd64
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        bundle
+        rails db:migrate
+        rm -rf /app/tmp/pids
+        rails server -p 3000 -b '0.0.0.0'
+    deploy:
+      resources:
+        limits:
+          memory: 2G
