@@ -10,9 +10,11 @@ class SeedService
         seed_comments
         seed_tags
       end
+      puts "All done!"
     end
 
     def seed_profiles
+      puts "Seeding profiles..."
       Profile.delete_all
       Profile.insert_all profiles_attributes
     end
@@ -33,6 +35,7 @@ class SeedService
     end
 
     def seed_posts
+      puts "Seeding posts..."
       Post.delete_all
 
       attributes = (1..NUM_POSTS).each_with_object([]) do |_num, array|
@@ -49,6 +52,7 @@ class SeedService
     end
 
     def seed_comments
+      puts "Seeding comments..."
       Comment.delete_all
 
       attributes = (1..NUM_POSTS * 10).each_with_object([]) do |_num, array|
@@ -66,6 +70,7 @@ class SeedService
     end
 
     def seed_tags
+      puts "Seeding tags..."
       Tag.delete_all
 
       attributes = (1..NUM_POSTS * 3).each_with_object([]) do |_num, array|
