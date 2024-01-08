@@ -1,6 +1,6 @@
 class SeedService
   NUM_PROFILES = 1_000
-  NUM_POSTS = 30_000
+  NUM_POSTS = 10_000
 
   class << self
     def seed_all
@@ -55,7 +55,7 @@ class SeedService
       puts "Seeding comments..."
       Comment.delete_all
 
-      attributes = (1..NUM_POSTS * 10).each_with_object([]) do |_num, array|
+      attributes = (1..NUM_POSTS * 3).each_with_object([]) do |_num, array|
         array << {
           profile_id: profile_ids.sample,
           post_id: post_ids.sample,

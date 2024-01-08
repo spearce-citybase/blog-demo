@@ -50,3 +50,6 @@ gem "memory_profiler", "~> 1.0"
 gem "get_process_mem", "~> 0.2.7"
 
 gem "pluck_to_hash", "~> 1.0"
+
+gem "pg", "~> 1.5"
+

@@ -4,7 +4,9 @@
 asdf plugin-update ruby
 asdf install
 bundle
+rails db:create
 rails db:migrate
+rake seed
 rails server
 ```
 
@@ -12,13 +14,10 @@ OR via docker:
 
 ```
 docker-compose up
+docker-compose exec app rake seed
 ```
 
 # Usage
-
-## Seed database records
-
-`rake seed`
 
 ## List posts
 

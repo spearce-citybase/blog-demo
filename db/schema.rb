@@ -11,10 +11,13 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.1].define(version: 2024_01_05_185254) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "comments", force: :cascade do |t|
     t.text "body"
-    t.integer "profile_id"
-    t.integer "post_id"
+    t.bigint "profile_id"
+    t.bigint "post_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "flag", default: false
@@ -25,7 +28,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_05_185254) do
   create_table "posts", force: :cascade do |t|
     t.string "title"
     t.text "body"
-    t.integer "profile_id"
+    t.bigint "profile_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["profile_id"], name: "index_posts_on_profile_id"
@@ -35,12 +38,11 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_05_185254) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "admin", default: false
   end
 
   create_table "tags", force: :cascade do |t|
     t.string "value"
-    t.integer "post_id"
+    t.bigint "post_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["post_id"], name: "index_tags_on_post_id"
