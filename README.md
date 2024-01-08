@@ -1,13 +1,16 @@
 # Setup
 
 ```
+asdf plugin-update ruby
 asdf install
 bundle
 rails db:migrate
 rails server
+```
 
 OR via docker:
 
+```
 docker-compose up
 ```
 
