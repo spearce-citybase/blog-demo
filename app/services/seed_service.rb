@@ -1,13 +1,15 @@
 class SeedService
   NUM_PROFILES = 1_000
-  NUM_POSTS = 100_000
+  NUM_POSTS = 30_000
 
   class << self
     def seed_all
-      seed_profiles
-      seed_posts
-      seed_comments
-      seed_tags
+      ActiveRecord::Base.logger.silence do
+        seed_profiles
+        seed_posts
+        seed_comments
+        seed_tags
+      end
     end
 
     def seed_profiles
@@ -66,7 +68,7 @@ class SeedService
     def seed_tags
       Tag.delete_all
 
-      attributes = (1..NUM_POSTS * 10).each_with_object([]) do |_num, array|
+      attributes = (1..NUM_POSTS * 3).each_with_object([]) do |_num, array|
         array << {
           post_id: post_ids.sample,
           value: FFaker::Lorem.word,

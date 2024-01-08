@@ -1,4 +1,4 @@
 class Profile < ApplicationRecord
   has_many :posts
-  has_many :comment
+  has_many :comments
 end
