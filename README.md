@@ -65,7 +65,7 @@ Post Create (0.1ms)  INSERT INTO "posts" ("title", "body", "profile_id", "create
 
 ## each vs find_each
 
-`find_each` will load `batch_size` records into memory, yield the block, and then garbage collect.
+`find_each` will load `batch_size` records into memory, yield the block, and then free the allocated memory.
 
 ```
 Post.find_each(batch_size: 1000) { |post| do_something_with_post }

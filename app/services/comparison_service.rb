@@ -1,12 +1,8 @@
 class ComparisonService
-  RUN_EXAMPLES_THIS_MANY_TIMES = 3
-
   class << self
-
 
     def compare_each_and_find_each(limit: 10_000)
       Rails.logger.silence do
-
         Benchmark.memory do |x|
           x.report('each') do
             Post.limit(limit).each { |p| p.inspect }
@@ -17,7 +13,7 @@ class ComparisonService
             GC.start
           end
           
-          x.compare!
+          x.compare! memory: :retained
         end
       end
     end
