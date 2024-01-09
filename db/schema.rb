@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_05_185254) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_09_211841) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,6 +23,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_05_185254) do
     t.boolean "flag", default: false
     t.index ["post_id"], name: "index_comments_on_post_id"
     t.index ["profile_id"], name: "index_comments_on_profile_id"
+  end
+
+  create_table "post_metrics", force: :cascade do |t|
+    t.bigint "post_id"
+    t.integer "views"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["post_id"], name: "index_post_metrics_on_post_id", unique: true
   end
 
   create_table "posts", force: :cascade do |t|

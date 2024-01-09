@@ -5,6 +5,7 @@ class SeedService
         seed_profiles(num: num_posts / 100)
         seed_posts(num: num_posts)
         seed_comments(num: num_posts * 3)
+        seed_post_metrics
       end
       puts "All done!"
     end
@@ -44,6 +45,17 @@ class SeedService
           updated_at: now
         }
       end
+    end
+
+    def seed_post_metrics
+      attributes = post_ids.map do |post_id|
+        {
+          post_id: post_id,
+          views: rand(0...100_000)
+        }
+      end
+
+      PostMetric.upsert_all(attributes, unique_by: :post_id)
     end
 
     def seed_comments(num: 300_000)

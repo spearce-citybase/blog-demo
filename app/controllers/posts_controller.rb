@@ -1,15 +1,17 @@
 class PostsController < ApplicationController
   def index
-    @posts = posts
+    limit = params[:limit] || 100
+    offset = params[:offset] || 0
+    posts = Post.limit(limit).offset(offset).order(id: :desc)
 
     if params[:preload] == "1"
-      @posts = @posts.includes(comments: [:profile]).includes(:profile)
+      posts = posts.includes(comments: [:profile]).includes(:profile, :post_metric)
     end
 
     if params[:fast_serializer] == "1"
-      serialized = FastPostSerializer.new(@posts).call
+      serialized = FastPostSerializer.new(posts).call
     else
-      serialized = ActiveModel::Serializer::CollectionSerializer.new(@posts, serializer: PostSerializer)
+      serialized = ActiveModel::Serializer::CollectionSerializer.new(posts, serializer: PostSerializer)
     end
 
     render json: { posts: serialized }
@@ -34,11 +36,5 @@ class PostsController < ApplicationController
 
   private def post_params
     params.permit(:title, :body, :profile_id)
-  end
-
-  private def posts
-    limit = params[:limit] || 100
-    offset = params[:offset] || 0
-    posts = Post.limit(limit).offset(offset).order(id: :desc)
   end
 end
