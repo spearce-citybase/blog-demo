@@ -193,3 +193,13 @@ Post.all.each { |post| do_something_with_post }
 
 If your ActiveRecordRelation hasn't been loaded, use `count`. If it has (e.g. if its a preloaded association), use `length`.
 If you don't want to worry about this, use `size`, as it will always do the right thing.
+
+# Takeaways
+
+1. Use the Bullet gem to detect n+1 queries.
+2. Preload associations to avoid n+1 queries, preferring the `includes` method.
+3. Use array methods on preloaded associations.
+4. Check if an association is preloaded with `loaded?`
+5. Use `pluck` to avoid initializing ActiveRecord objects, which are memory intensive.
+6. Prefer batch operations such as `insert_all`,`find_each`
+7. 
