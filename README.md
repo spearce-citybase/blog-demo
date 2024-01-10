@@ -121,7 +121,7 @@ post.comments.loaded? ? post.comments.select(&:flag?) : post.comments.where(flag
 
 ## select vs pluck
 
-`select` initializes ActiveRecord objects, leading to a large memory allocation. `pluck` just returns an array of values.
+`select` initializes ActiveRecord objects, leading to a large memory allocation.
 
 ```
 Post.all.select(:title)
@@ -132,17 +132,21 @@ Post.all.select(:title)
 The benefit of `select` is that it returns a ActiveRecordRelation, so you can continue chaining scopes.
 
 ```
+Post.all.select(:title).joins(:comments)
+```
+
+In contrast, `pluck` returns an Array, and no ActiveRecord objects are initialized.
+
+```
 Post.all.pluck(:title)
 
 ["Qui autem nulla itaque libero earum.", "Odio enim doloribus qui magni.", ....
 ```
 
-`pluck` returns an Array, not an ActiveRecordRelation.
-
-
 ## create vs insert_all
 
-`insert_all` will perform a single `INSERT`, whereas `create` will perform multiple `INSERT`s.
+`insert_all` will perform a single `INSERT`
+However, callbacks and validations are not performed.
 
 ```
 Post.insert_all(posts_attributes)
@@ -150,7 +154,7 @@ Post.insert_all(posts_attributes)
 INSERT INTO "posts" ("profile_id","title","body","created_at","updated_at") VALUES ....
 ```
 
-Note: `insert_all` does not run ActiveRecord callbacks.
+`create` will perform multiple `INSERT`s, and perform callbacks and validations.
 
 ```
 Post.create(posts_attributes)
@@ -172,18 +176,27 @@ Post Create (0.1ms)  INSERT INTO "posts" ("title", "body", "profile_id", "create
 ## each vs find_each
 
 `find_each` will load `batch_size` records into memory, yield the block, and then free the allocated memory.
+It cannot be ordered, however, because ActiveRecord uses the primary key ordering to batch the records.
 
 ```
-Post.find_each(batch_size: 1000) { |post| do_something_with_post }
+Post.order(title: :desc).find_each(batch_size: 1000) { |post| do_something_with_post }
+
+Post Load (79.2ms)  SELECT "posts".* FROM "posts" ORDER BY "posts"."id" ASC LIMIT $1  [["LIMIT", 1000]]
+  Post Load (11.5ms)  SELECT "posts".* FROM "posts" WHERE "posts"."id" > $1 ORDER BY "posts"."id" ASC LIMIT $2  [["id", 1100404], ["LIMIT", 1000]]
+  Post Load (12.3ms)  SELECT "posts".* FROM "posts" WHERE "posts"."id" > $1 ORDER BY "posts"."id" ASC LIMIT $2  [["id", 1101404], ["LIMIT", 1000]]
+  Post Load (8.7ms)  SELECT "posts".* FROM "posts" WHERE "posts"."id" > $1 ORDER BY "posts"."id" ASC LIMIT $2  [["id", 1102404], ["LIMIT", 1000]]
 ```
 
-Note: `find_each` cannot be ordered.
-
-`each`, however, will load all records into memory, leaving a large amount of memory retained.
+`each` will load all records into memory, resulting in a large memory allocation.
 
 ```
-Post.all.each { |post| do_something_with_post }
+Post.all.each { |post| post.inspect }
+
+Post Load (207.0ms)  SELECT "posts".* FROM "posts"
 ```
+
+To see the difference in memory usage, try starting the application with docker-compose, and compare the memory usage of the container while running
+`each` and `find_each`
 
 ## count vs size vs length
 
