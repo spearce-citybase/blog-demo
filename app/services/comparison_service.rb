@@ -18,6 +18,21 @@ class ComparisonService
       end
     end
 
+    def compare_select_and_pluck(limit: 10_000)
+      Rails.logger.silence do
+        Benchmark.memory do |x|
+          x.report('select') do
+            Post.limit(limit).select(:title).map(&:title)
+          end
+          x.report('find_each') do
+            Post.limit(limit).pluck(:title)
+          end
+          
+          x.compare! memory: :allocated
+        end
+      end
+    end
+
     def compare_create_and_insert_all(num: 10_000)
       Rails.logger.silence do
         attributes = SeedService.post_attributes(num: num)
