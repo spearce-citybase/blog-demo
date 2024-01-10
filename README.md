@@ -38,13 +38,6 @@ docker-compose exec app rake seed
 Preload an association with `includes` to avoid n+1 queries.
 
 ```
-Post.limit(10).includes(:comments).map { |post| { title: post.title, comments: post.comments } }
-
-Post Load (0.4ms)  SELECT "posts".* FROM "posts" LIMIT ?  [["LIMIT", 10]]
-Comment Load (1.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" IN ....
-```
-
-```
 Post.limit(10).map { |post| { title: post.title, comments: post.comments } }
 
 Post Load (0.1ms)  SELECT "posts".* FROM "posts" LIMIT ?  [["LIMIT", 10]]
@@ -52,6 +45,13 @@ Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post
 Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = ? LIMIT ?
 Comment Load (0.0ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" = ? LIMIT ?
 ...
+```
+
+```
+Post.limit(10).includes(:comments).map { |post| { title: post.title, comments: post.comments } }
+
+Post Load (0.4ms)  SELECT "posts".* FROM "posts" LIMIT ?  [["LIMIT", 10]]
+Comment Load (1.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" IN ....
 ```
 
 ### What preloading method to use?
@@ -82,14 +82,7 @@ So: prefer `includes` over `preload` or `eager_load`.
 
 ### Filtering preloaded relations
 
-Chaining a scope on the preloaded relation will drop the preloaded data. So its best to do array manipulation.
-
-```
-Post.limit(10).includes(:comments).map { |post| { title: post.title, comments: post.comments.select(&:flag?) } }
-
-Post Load (0.1ms)  SELECT "posts".* FROM "posts" LIMIT ?  [["LIMIT", 10]]
-Comment Load (0.4ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" IN ....
-```
+Chaining a scope on the preloaded relation will drop the preloaded data.
 
 ```
 Post.limit(10).includes(:comments).map { |post| { title: post.title, comments: post.comments.where(flag: true) } }
@@ -102,6 +95,20 @@ Comment Load (0.0ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post
 ....
 ```
 
+So its best to do array manipulation:
+
+```
+Post.limit(10).includes(:comments).map { |post| { title: post.title, comments: post.comments.select(&:flag?) } }
+
+Post Load (0.1ms)  SELECT "posts".* FROM "posts" LIMIT ?  [["LIMIT", 10]]
+Comment Load (0.4ms)  SELECT "comments".* FROM "comments" WHERE "comments"."post_id" IN ....
+```
+
+If you don't know whether a relation is preloaded and need to filter it, you can check `loaded?`:
+```
+post.comments.loaded? ? post.comments.select(&:flag?) : post.comments.where(flag: true)
+```
+
 Alternatively, you can add a `has_many` that contains the condition and preload that:
 ```
 has_many :flagged_comments, -> { where(flag: true) }, class_name: Comment.name
@@ -112,11 +119,6 @@ Post.limit(10).includes(:flagged_comments).map { |post| { title: post.title, com
 
 Post Load (0.1ms)  SELECT "posts".* FROM "posts" LIMIT ?  [["LIMIT", 10]]
 Comment Load (0.2ms)  SELECT "comments".* FROM "comments" WHERE "comments"."flag" = ? AND "comments"."post_id" IN ...
-```
-
-If you don't know whether a relation is preloaded and need to filter it, you can check `loaded?`:
-```
-post.comments.loaded? ? post.comments.select(&:flag?) : post.comments.where(flag: true)
 ```
 
 ## select vs pluck
@@ -145,15 +147,6 @@ Post.all.pluck(:title)
 
 ## create vs insert_all
 
-`insert_all` will perform a single `INSERT`
-However, callbacks and validations are not performed.
-
-```
-Post.insert_all(posts_attributes)
-
-INSERT INTO "posts" ("profile_id","title","body","created_at","updated_at") VALUES ....
-```
-
 `create` will perform multiple `INSERT`s, and perform callbacks and validations.
 
 ```
@@ -171,6 +164,15 @@ Profile Load (0.0ms)  SELECT "profiles".* FROM "profiles" WHERE "profiles"."id" 
 Post Create (0.1ms)  INSERT INTO "posts" ("title", "body", "profile_id", "created_at", "updated_at") VALUES ...
    (0.2ms)  commit transaction
 ...
+```
+
+`insert_all` will perform a single `INSERT`
+However, callbacks and validations are not performed.
+
+```
+Post.insert_all(posts_attributes)
+
+INSERT INTO "posts" ("profile_id","title","body","created_at","updated_at") VALUES ....
 ```
 
 ## each vs find_each
