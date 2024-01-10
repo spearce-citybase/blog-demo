@@ -10,6 +10,6 @@ class PostSerializer < ActiveModel::Serializer
   end
 
   def metrics
-    PostMetricSerializer.new(object.post_metric)
+    object.post_metric ? PostMetricSerializer.new(object.post_metric) : nil
   end
 end
