@@ -202,4 +202,4 @@ If you don't want to worry about this, use `size`, as it will always do the righ
 4. Check if an association is preloaded with `loaded?`
 5. Use `pluck` to avoid initializing ActiveRecord objects, which are memory intensive.
 6. Prefer batch operations such as `insert_all`,`find_each`
-7. 
+7. Prefer `size` over `count` or `length`
